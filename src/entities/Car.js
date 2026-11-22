@@ -1,9 +1,10 @@
 import { CONFIG } from "../config.js";
 import { polyIntersectsSegments } from "../utils/math.js";
 import { Sensor } from "./Sensor.js";
+import { NeuralNetwork } from "../ai/NeuralNetwork.js";
 
 export class Car {
-  constructor(x, y, angle = 0) {
+  constructor(x, y, angle = 0, useBrain = false, brain = null) {
     this.x = x;
     this.y = y;
     this.angle = angle;
@@ -13,15 +14,38 @@ export class Car {
     this.damaged = false;
     this.polygon = [];
     this.sensor = new Sensor(this);
+
+    this.useBrain = useBrain;
+    if (useBrain) {
+      this.brain =
+        brain ||
+        new NeuralNetwork([
+          CONFIG.SENSOR.RAY_COUNT,
+          CONFIG.AI.HIDDEN_NEURONS,
+          CONFIG.AI.OUTPUT_NEURONS,
+        ]);
+    }
   }
 
-  update(input, borders) {
+  update(borders, manualInput = null) {
     if (!this.damaged) {
+      this.sensor.update(borders);
+      const input = this.useBrain ? this.#getBrainInput() : manualInput;
       this.#applyPhysics(input);
       this.polygon = this.#createPolygon();
       this.damaged = polyIntersectsSegments(this.polygon, borders);
     }
-    this.sensor.update(borders);
+  }
+
+  #getBrainInput() {
+    const offsets = this.sensor.getNormalizedReadings();
+    const outputs = NeuralNetwork.feedForward(offsets, this.brain);
+    return {
+      forward: true,  // دفع مستمر للأمام (يمنع التوقف)
+      reverse: false, // منع الرجوع للخلف
+      left: Boolean(outputs[0]),
+      right: Boolean(outputs[1]),
+    };
   }
 
   #applyPhysics({ forward, reverse, left, right }) {

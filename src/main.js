@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { Track } from "./world/Track.js";
 import { Car } from "./entities/Car.js";
 
-const FRAME_TIME = 1000 / 120;
+const FRAME_TIME = 1000 / 1000;
 let lastTime = 0;
 
 const canvas = document.getElementById("canvas");
@@ -66,7 +66,7 @@ window.addEventListener("keydown", (e) => {
   setKey(e.code, true);
   if (e.code === "KeyR" && track.isClosed) {
     const start = track.getStartTransform();
-    car = new Car(start.x, start.y, start.angle);
+    car = new Car(start.x, start.y, start.angle, true);
     statusEl.textContent = "استخدم الأسهم أو WASD للقيادة";
   }
 });
@@ -81,16 +81,12 @@ function animate(time = 0) {
 
   track.draw(ctx);
 
-  // if (car) {
-  //   car.update(keys);
-  //   car.draw(ctx);
-  // }
-  if (car) {
-    car.update(keys, track.borders);
+if (car) {
+    car.update(track.borders, keys);
     car.draw(ctx);
 
     if (car.damaged) {
-      statusEl.textContent = "اصطدمت السيارة! اضغط R لإعادة المحاولة";
+      statusEl.textContent = "اصطدمت السيارة! اضغط R لتجربة دماغ عشوائي جديد";
     }
   }
 }

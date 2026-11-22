@@ -25,4 +25,8 @@ export const CONFIG = {
     RAY_COLOR: "#facc15",
     HIT_COLOR: "#111827",
   },
+  AI: {
+    HIDDEN_NEURONS: 6,
+    OUTPUT_NEURONS: 2, // [left, right]
+  },
 };
