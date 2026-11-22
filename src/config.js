@@ -29,4 +29,10 @@ export const CONFIG = {
     HIDDEN_NEURONS: 6,
     OUTPUT_NEURONS: 2, // [left, right]
   },
+  GENETIC: {
+    POPULATION_SIZE: 100,
+    MUTATION_RATE: 0.15,
+    STALL_FRAMES: 180, // إيقاف السيارة إذا لم تتقدم لنقطة جديدة خلال 3 ثوانٍ
+    BEST_CAR_COLOR: "#10b981",
+  },
 };

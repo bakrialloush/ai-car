@@ -14,6 +14,9 @@ export class Car {
     this.damaged = false;
     this.polygon = [];
     this.sensor = new Sensor(this);
+    this.fitness = 0;
+    this.nextCheckpoint = 1;
+    this.framesSinceProgress = 0;
 
     this.useBrain = useBrain;
     if (useBrain) {
@@ -27,14 +30,37 @@ export class Car {
     }
   }
 
-  update(borders, manualInput = null) {
+update(borders, centerPoints) {
     if (!this.damaged) {
       this.sensor.update(borders);
-      const input = this.useBrain ? this.#getBrainInput() : manualInput;
+      const input = this.#getBrainInput();
       this.#applyPhysics(input);
       this.polygon = this.#createPolygon();
       this.damaged = polyIntersectsSegments(this.polygon, borders);
+      this.#updateFitness(centerPoints);
     }
+  }
+
+  #updateFitness(centerPoints) {
+    const target = centerPoints[this.nextCheckpoint];
+    const dist = Math.hypot(target.x - this.x, target.y - this.y);
+
+    if (dist < CONFIG.TRACK.WIDTH * 0.6) {
+      this.fitness += 1;
+      this.nextCheckpoint = (this.nextCheckpoint + 1) % centerPoints.length;
+      this.framesSinceProgress = 0;
+    } else {
+      this.framesSinceProgress++;
+      if (this.framesSinceProgress > CONFIG.GENETIC.STALL_FRAMES) {
+        this.damaged = true; // منع الدوران حول النفس
+      }
+    }
+  }
+
+  getScore(centerPoints) {
+    const target = centerPoints[this.nextCheckpoint];
+    const dist = Math.hypot(target.x - this.x, target.y - this.y);
+    return this.fitness + 1 / (1 + dist);
   }
 
   #getBrainInput() {
@@ -88,21 +114,25 @@ export class Car {
     }));
   }
 
-  draw(ctx, drawSensor = true) {
-    if (drawSensor) {
+draw(ctx, isBest = false) {
+    if (isBest) {
       this.sensor.draw(ctx);
     }
 
     ctx.save();
+    ctx.globalAlpha = isBest ? 1 : 0.25;
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
 
-    ctx.fillStyle = this.damaged ? CONFIG.CAR.DAMAGED_COLOR : CONFIG.CAR.COLOR;
-    ctx.fillRect(-this.length / 2, -this.width / 2, this.length, this.width);
+    ctx.fillStyle = this.damaged
+      ? CONFIG.CAR.DAMAGED_COLOR
+      : isBest
+      ? CONFIG.GENETIC.BEST_CAR_COLOR
+      : CONFIG.CAR.COLOR;
 
+    ctx.fillRect(-this.length / 2, -this.width / 2, this.length, this.width);
     ctx.fillStyle = "#93c5fd";
     ctx.fillRect(this.length / 6, -this.width / 2 + 2, this.length / 4, this.width - 4);
-
     ctx.restore();
   }
 }
