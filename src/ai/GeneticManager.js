@@ -3,10 +3,10 @@ import { Car } from "../entities/Car.js";
 import { NeuralNetwork } from "./NeuralNetwork.js";
 
 export class GeneticManager {
-  constructor(track) {
+  constructor(track, initialBrain = null, initialGeneration = 1) {
     this.track = track;
-    this.generation = 1;
-    this.bestBrain = null;
+    this.generation = initialGeneration;
+    this.bestBrain = initialBrain ? structuredClone(initialBrain) : null;
     this.bestScore = 0;
     this.cars = [];
     this.#spawnGeneration();

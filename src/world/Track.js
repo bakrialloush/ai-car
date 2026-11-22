@@ -28,6 +28,13 @@ export class Track {
       this.centerPoints.push(point);
     }
   }
+  
+  loadPoints(points) {
+    this.reset();
+    this.centerPoints = points;
+    this.isClosed = true;
+    this.#buildBorders();
+  }
 
   finishDrawing() {
     if (!this.isDrawing) return;
