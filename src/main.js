@@ -62,6 +62,15 @@ clearBtn.addEventListener("click", () => {
   statusEl.textContent = "ارسم مساراً مغلقاً بالماوس";
 });
 
+window.addEventListener("keydown", (e) => {
+  setKey(e.code, true);
+  if (e.code === "KeyR" && track.isClosed) {
+    const start = track.getStartTransform();
+    car = new Car(start.x, start.y, start.angle);
+    statusEl.textContent = "استخدم الأسهم أو WASD للقيادة";
+  }
+});
+
 function animate(time = 0) {
   requestAnimationFrame(animate);
 
@@ -72,9 +81,17 @@ function animate(time = 0) {
 
   track.draw(ctx);
 
+  // if (car) {
+  //   car.update(keys);
+  //   car.draw(ctx);
+  // }
   if (car) {
-    car.update(keys);
+    car.update(keys, track.borders);
     car.draw(ctx);
+
+    if (car.damaged) {
+      statusEl.textContent = "اصطدمت السيارة! اضغط R لإعادة المحاولة";
+    }
   }
 }
 

@@ -16,5 +16,13 @@ export const CONFIG = {
     FRICTION: 0.03,
     TURN_SPEED: 0.035,
     COLOR: "#3b82f6",
+    DAMAGED_COLOR: "#ef4444",
+  },
+  SENSOR: {
+    RAY_COUNT: 5,
+    RAY_LENGTH: 150,
+    RAY_SPREAD: Math.PI * 0.75, // زاوية انتشار الأشعة (135 درجة)
+    RAY_COLOR: "#facc15",
+    HIT_COLOR: "#111827",
   },
 };
