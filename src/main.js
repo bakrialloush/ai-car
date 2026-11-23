@@ -12,8 +12,16 @@ const loadBtn = document.getElementById("loadBtn");
 const statusEl = document.getElementById("status");
 const fileInput = document.getElementById("fileInput");
 
-canvas.width = CONFIG.CANVAS_WIDTH;
-canvas.height = CONFIG.CANVAS_HEIGHT;
+function resizeCanvas() {
+  const isPortrait = window.matchMedia("(max-width: 600px)").matches;
+  canvas.width = isPortrait ? CONFIG.PORTRAIT_WIDTH : CONFIG.CANVAS_WIDTH;
+  canvas.height = isPortrait ? CONFIG.PORTRAIT_HEIGHT : CONFIG.CANVAS_HEIGHT;
+}
+
+resizeCanvas();
+window.addEventListener("resize", () => {
+  if (!track.isClosed && !track.isDrawing) resizeCanvas();
+});
 
 const track = new Track();
 let manager = null;
@@ -88,7 +96,43 @@ fileInput.addEventListener("change", async (e) => {
   }
 });
 
-const FRAME_TIME = 1000 / 60;
+function getPointerPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY,
+  };
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  manager = null;
+  track.startDrawing(getPointerPos(e));
+  statusEl.textContent = "جاري الرسم...";
+});
+
+canvas.addEventListener("pointermove", (e) => {
+  if (!track.isDrawing) return;
+  track.addPoint(getPointerPos(e));
+});
+
+function handlePointerUp() {
+  if (!track.isDrawing) return;
+  track.finishDrawing();
+
+  if (track.isClosed) {
+    manager = new GeneticManager(track);
+  } else {
+    statusEl.textContent = "المسار قصير جداً، أعد الرسم.";
+  }
+}
+
+window.addEventListener("pointerup", handlePointerUp);
+window.addEventListener("pointercancel", handlePointerUp);
+
+const FRAME_TIME = 1000 / 1000;
 let lastTime = 0;
 
 function animate(time = 0) {
